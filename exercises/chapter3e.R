@@ -31,4 +31,5 @@ quantile(samples, .8)
 HPDI(samples, prob=.66)
 
 # 7
-quantile(samples, c(.17, .87))
+quantile(samples, c(.17, .83))
+PI(samples, .66)

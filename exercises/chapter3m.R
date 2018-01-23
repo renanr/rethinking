@@ -8,7 +8,7 @@ posterior <- likelihood * prior
 posterior <- posterior / sum(posterior)
 
 # 2
-plot(posterior)
+plot(posterior ~ p_grid, type="l")
 nb.samples <- 1e4
 samples <- sample(p_grid, prob=posterior, size=nb.samples, replace=TRUE)
 HPDI(samples, .9)
