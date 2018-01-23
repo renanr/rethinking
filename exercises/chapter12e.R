@@ -280,3 +280,25 @@ compare(m11.1stan, mv)
 
 # Using WAIC: mv gets all of the weight, which means that individual variation is the overwhelmingly
 # biggest source of variation.
+
+# 3
+
+mvs = map2stan(
+  alist(
+    response ~ dordlogit( phi , cutpoints ),
+    phi <- ba * action + bi * intention + bc * contact + a + a_id[id] + a_story[story],
+    a_id[id] ~ dnorm(0, sigma_id),
+    a_story[story] ~ dnorm(0, sigma_story),
+    a ~ dnorm(0, 10),
+    sigma_id ~ dcauchy(0, 1),
+    sigma_story ~ dcauchy(0, 1),
+    c(ba, bi, bc) ~ dnorm(0, 10),
+    cutpoints ~ dnorm(0,10)
+  ),
+  data=list(response=d$response, action=d$action, intention=d$intention, contact=d$contact, id=d$id, story=d$story),
+  start=list(cutpoints=c(-2,-1,0,1,2,2.5)) , chains=2 , cores=2 )
+
+compare(m11.1stan, mv, mvs)
+
+# It's overwhelmingly higher-ranking on WAIC criterium! It gets all the akaike weight.
+# This means that the stories are responsible for a lot of the variance in the responses!
