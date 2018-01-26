@@ -9,7 +9,7 @@ d2 <- d[d$weight > 32,]
 plot(d2$weight ~ d2$age)
 min(d2$age)
 
-d3 <- d[d$age > 18, ]
+d3 <- d[d$age >= 18, ]
 d3$weight.s <- (d3$weight - mean(d3$weight)) / sd(d3$weight)
 m4.1 <- map(
   alist(
@@ -53,7 +53,7 @@ m4.2 <- map(
 )
 
 precis(m4.2)
-str(10 / sd(d4$weight)  * 24,31)
+str(10 / sd(d4$weight)  * 24.31)
 plot(d4$height ~ d4$weight, col=col.alpha(rangi2, 0.4))
 abline( a=coef(m4.2)["a"] , b=coef(m4.2)["b"] )
 
@@ -69,4 +69,5 @@ simloks <- sim(m4.2, data=data.frame(weight.s=seq.weight.s), n=1e4)
 sim.hpdi <- apply(simloks, 2, HPDI)
 shade(sim.hpdi, seq.weight)
 
-# The model overestimates heights for both low and high weights. I would build more models, as there are apparently distinct phases of growing.
+# The model overestimates heights for both low and high weights.
+# I would pick a different model that allows the slope to adjust to weight values.
