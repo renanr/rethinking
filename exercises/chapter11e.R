@@ -131,3 +131,51 @@ ggplot(d) +
 
 # 3
 
+d$damage_norm = with(d, (damage_norm - mean(damage_norm)) / sd(damage_norm) )
+d$min_pressure = with(d, (min_pressure - mean(min_pressure)) / sd(min_pressure) )
+
+m3a = map2stan(
+  alist(
+    deaths ~ dgampois(mu, scale=theta),
+    log(mu) <- a + (b + bD * femininity) * damage_norm,
+    a ~ dnorm(3, 10),
+    c(b, bD) ~ dnorm(0, 5),
+    theta ~ dexp(1)
+  ), data=d, iter=1500, warmup=300, chains=2, constraints=list(theta="lower=0"),
+  start=list(a=3, b=0, bD=0)
+)
+
+m3b = map2stan(
+  alist(
+    deaths ~ dgampois(mu, scale=theta),
+    log(mu) <- a + (b + bP * femininity) * min_pressure,
+    a ~ dnorm(3, 10),
+    c(b, bP) ~ dnorm(0, 5),
+    theta ~ dexp(1)
+  ), data=d, iter=1500, warmup=300, chains=2, constraints=list(theta="lower=0"),
+  start=list(a=3, b=0, bP=0)
+)
+
+m3ab = map2stan(
+  alist(
+    deaths ~ dgampois(mu, scale=theta),
+    log(mu) <- a + (b + bD * femininity) * damage_norm + (b2 + bP * femininity) * min_pressure,
+    a ~ dnorm(3, 10),
+    c(b, bD, b2, bP) ~ dnorm(0, 5),
+    theta ~ dexp(1)
+  ), data=d, iter=1500, warmup=300, chains=2, constraints=list(theta="lower=0"),
+  start=list(a=3, b=0, bD=0, bP=0)
+)
+
+compare(m2, m3a, m3b, m3ab)
+precis(m3a)
+
+# I only get poor results for these interaction models. Why?
+# All the Akaike weight goes to model 2...
+
+# 4
+# This depends on the previous one
+
+# 5
+data("Trolley")
+d = Trolley
