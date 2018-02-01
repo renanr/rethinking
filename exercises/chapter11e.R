@@ -179,3 +179,64 @@ precis(m3a)
 # 5
 data("Trolley")
 d = Trolley
+
+m5 <- rethinking::map(
+  alist(
+    response ~ dordlogit( phi , c(a1,a2,a3,a4,a5,a6) ) ,
+    phi <- bA*action + bI*intention + (bC + bMC * male) * contact,
+    c(bA,bI,bC,bMC) ~ dnorm(0,10),
+    c(a1,a2,a3,a4,a5,a6) ~ dnorm(0,10)
+  ) ,
+  data=d ,
+  start=list(a1=-1.9,a2=-1.2,a3=-0.7,a4=0.2,a5=0.9,a6=1.8) )
+
+precis(m5)
+
+post <- extract.samples( m5 )
+
+# In these data, women are more bothered by contact. bC is negative, implying
+# lower probabilities for high permissivities, but the interaction with male is
+# positive, allowing somewhat higher probabilities.
+
+# 6
+
+data("Fish")
+d = Fish
+
+m6 <- map(
+  alist(
+    fish_caught ~ dzipois( p , lambda ),
+    logit(p) <- aP + bC * child + bP * persons + bM * camper,
+    log(lambda) <- aL + bL * livebait + log(hours),
+    aP ~ dnorm(0,1),
+    aL ~ dnorm(0,10),
+    c(bC, bP, bM, bL) ~ dnorm(0,1)
+  ) ,
+  data=d )
+precis(m6)
+
+m6b <- map(
+  alist(
+    fish_caught ~ dzipois( p , lambda ),
+    logit(p) <- aP + bP * persons,
+    log(lambda) <- aL + bL * livebait + bC * child + bM * camper + log(hours),
+    aP ~ dnorm(0,1),
+    aL ~ dnorm(0,10),
+    c(bC, bP, bM, bL) ~ dnorm(0,1)
+  ) ,
+  data=d )
+precis(m6b)
+
+m6c <- map(
+  alist(
+    fish_caught ~ dzipois( p , lambda ),
+    logit(p) <- aP + bP * persons,
+    log(lambda) <- aL + bL * livebait + bC * child + log(hours),
+    aP ~ dnorm(0,1),
+    aL ~ dnorm(0,10),
+    c(bC, bP, bM, bL) ~ dnorm(0,1)
+  ) ,
+  data=d )
+precis(m6b)
+
+compare(m6, m6b, m6c)
