@@ -55,7 +55,7 @@ d$MedianAgeMarriage.s <- (d$MedianAgeMarriage-mean(d$MedianAgeMarriage))/
 
 d$Marriage.s <- (d$Marriage - mean(d$Marriage))/sd(d$Marriage)
 
-mormons <- read.csv("~/R Projects/mormonperc.csv")
+mormons <- read.csv("./exercises/data/mormonperc.csv")
 
 d <- merge(d, mormons)
 d$MormonPercentage.s <- (d$percentage - mean(d$percentage)) / sd(d$percentage)
