@@ -113,7 +113,7 @@ dlist <- list(
   R=d$Marriage,
   A=d$MedianAgeMarriage
 )
-m14.1 <- map2stan(
+m14.1e <- map2stan(
   alist(
     div_est ~ dnorm(mu,sigma),
     mu <- a + bA*A + bR*R,
@@ -125,10 +125,8 @@ m14.1 <- map2stan(
   ) ,
   data=dlist ,
   start=list(div_est=dlist$div_obs) ,
-  WAIC=FALSE , iter=5000 , warmup=1000 , chains=2 , cores=2 ,
+  WAIC=FALSE , iter=1500 , warmup=300 , chains=2 , cores=2 ,
   control=list(adapt_delta=0.95) )
-
-precis( m14.1 , depth=2 )
 
 dlist <- list(
   div_obs=d$Divorce,
@@ -137,7 +135,7 @@ dlist <- list(
   mar_sd=2 * d$Marriage.SE,
   A=d$MedianAgeMarriage )
 
-m14.2 <- map2stan(
+m14.2e <- map2stan(
   alist(
     div_est ~ dnorm(mu,sigma),
     mu <- a + bA*A + bR*mar_est[i],
@@ -150,5 +148,116 @@ m14.2 <- map2stan(
   ) ,
   data=dlist ,
   start=list(div_est=dlist$div_obs,mar_est=dlist$mar_obs) ,
-  WAIC=FALSE , iter=5000 , warmup=1000 , chains=3 , cores=3 ,
+  WAIC=FALSE , iter=1500 , warmup=300 , chains=2 , cores=2 ,
   control=list(adapt_delta=0.95) )
+
+precis(m14.2, depth=2)
+precis(m14.2e, depth=2)
+
+# I do not see a big difference in inference...
+
+# HARD
+# 1
+
+library(rethinking)
+data(elephants)
+d = elephants
+
+m14.h1.a = map2stan(
+  alist(
+    MATINGS ~ dpois(lambda),
+    log(lambda) <- a + b * AGE,
+    a ~ dnorm(0, 1),
+    b ~ dnorm(0, 1)),
+  data=d, iter=1500, warmup=300, chains=2)
+
+m14.h1.b = map2stan(
+  alist(
+    MATINGS ~ dpois(lambda),
+    log(lambda) <- a + b * AGE_est[i],
+    AGE ~ dnorm(AGE_est, 5),
+    a ~ dnorm(0, 1),
+    b ~ dnorm(0, 1)),
+  data=d, iter=1500, warmup=300, chains=2,
+  start=list(AGE_est=d$AGE))
+
+precis(m14.h1.a)
+precis(m14.h1.b)
+
+# No sensible difference in the relationship was detected.
+
+# 2
+m14.h1.50 = map2stan(
+  alist(
+    MATINGS ~ dpois(lambda),
+    log(lambda) <- a + b * AGE_est[i],
+    AGE ~ dnorm(AGE_est, 50),
+    a ~ dnorm(0, 1),
+    b ~ dnorm(0, 1)),
+  data=d, iter=1500, warmup=300, chains=2,
+  start=list(AGE_est=d$AGE))
+
+precis(m14.h1.50)
+
+m14.h1.100 = map2stan(
+  alist(
+    MATINGS ~ dpois(lambda),
+    log(lambda) <- a + b * AGE_est[i],
+    AGE ~ dnorm(AGE_est, 100),
+    a ~ dnorm(0, 1),
+    b ~ dnorm(0, 1)),
+  data=d, iter=1500, warmup=300, chains=2,
+  start=list(AGE_est=d$AGE))
+
+precis(m14.h1.100)
+
+m14.h1.75 = map2stan(
+  alist(
+    MATINGS ~ dpois(lambda),
+    log(lambda) <- a + b * AGE_est[i],
+    AGE ~ dnorm(AGE_est, 75),
+    a ~ dnorm(0, 1),
+    b ~ dnorm(0, 1)),
+  data=d, iter=1500, warmup=300, chains=2,
+  start=list(AGE_est=d$AGE))
+
+precis(m14.h1.75)
+
+# It has to be around 67,5!
+
+# 3
+
+set.seed(100)
+x <- c( rnorm(10) , NA )
+y <- c( rnorm(10,x) , 100 )
+d <- list(x=x,y=y)
+
+d.cc = data.frame(d)[complete.cases(d), ]
+m.cc = map(
+  alist(
+    y ~ dnorm(mu, sigma),
+    mu <- a + b * x,
+    a ~ dnorm(0, 1),
+    b ~ dnorm(0, 1),
+    sigma ~ dcauchy(0, 1)),
+  data=data.frame(d.cc))
+precis(m.cc)
+
+post.cc = extract.samples(m.cc)
+dens(post.cc$b)
+
+m14.h3 = map2stan(
+  alist(
+    y ~ dnorm(mu, sigma),
+    mu <- a + b * x,
+    x ~ dnorm(0, 1),
+    a ~ dnorm(0, 100),
+    b ~ dnorm(0, 100),
+    sigma ~ dcauchy(0, 1)),
+  data=d, iter=1500, warmup=300, chains=2
+)
+
+post = extract.samples(m14.h3)
+dens(post$b)
+
+# Now there is a considerable mass for high negative values (even as high as -40).
