@@ -23,6 +23,7 @@
 # 
 # It is being assumed that the values have fixed variance and were randomly missing.
 # (Normal distribution of missing values)
+# "Random" is a claim about OUR INFORMATION, not CAUSATION.
 
 # 2
 
@@ -151,10 +152,10 @@ m14.2e <- map2stan(
   WAIC=FALSE , iter=1500 , warmup=300 , chains=2 , cores=2 ,
   control=list(adapt_delta=0.95) )
 
-precis(m14.2, depth=2)
-precis(m14.2e, depth=2)
+precis(m14.1e)
+precis(m14.2e)
 
-# I do not see a big difference in inference...
+# bR has almost doubled, sigma has decreased!
 
 # HARD
 # 1
@@ -185,6 +186,7 @@ precis(m14.h1.a)
 precis(m14.h1.b)
 
 # No sensible difference in the relationship was detected.
+# This is because the measurement error is SYMMETRIC and HOMOGENEOUS for all ages.
 
 # 2
 m14.h1.50 = map2stan(
@@ -261,3 +263,7 @@ post = extract.samples(m14.h3)
 dens(post$b)
 
 # Now there is a considerable mass for high negative values (even as high as -40).
+# The prior for x is too narrow too allow a considerable probability for the implied value
+# by the estimated b and y=100. This forces b to increase in modulo and have either positive
+# or negative slope, as the golem is just applying logic to extract conclusions FROM OUR
+# PREVISOU ASSUMPTIONS!
