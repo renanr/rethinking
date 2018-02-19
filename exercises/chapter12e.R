@@ -36,14 +36,16 @@
 
 # 4
 # y_i ~ Poisson(lambda_i)
-# log(lambda_i) = a_(x[i])
+# log(lambda_i) = a_(x[i]) + b * x_i
+# b ~ Normal(0, 1)
 # a_x ~ Normal(a, sigma)
 # a ~ Normal(0, 10)
 # sigma ~ HalfCauchy(0, 1)
 
 # 5
 # y_i ~ Poisson(lambda_i)
-# log(lambda_i) = a + a_(x[i]) + a_(y[i])
+# log(lambda_i) = a + a_(x[i]) + a_(y[i]) + b * z
+# b ~ Normal(0, 1)
 # a_x ~ Normal(0, sigma_x)
 # a_y ~ Normal(0, sigma_y)
 # a ~ Normal(0, 10)
