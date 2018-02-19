@@ -20,11 +20,7 @@
 # 
 # 3
 # 
-# When the slopes and intercepts are highly correlated. The model with unpooled slopes
-# will be limited to 1 parameter for the slopes, sure enough, but this may lead to a
-# bigger number of effective parameters for the varying intercepts, bigger enough to
-# compensate the reduction of parameters when both slopes and intercepts are modeled
-# together with their correlation.
+# When there is little variation among pools.
 
 # MEDIUM
 # 1
@@ -111,7 +107,18 @@ m13.m2 <- map2stan(
 
 compare(m13.m1_original, m13.m2)
 
-# It is almost as good as the other? I don't understand.
+post1 <- extract.samples(m13.m1_original)
+a1 <- apply( post1$a_cafe , 2 , mean )
+b1 <- apply( post1$b_cafe , 2 , mean )
+post2 <- extract.samples(m13.m2)
+a2 <- apply( post2$a_cafe , 2 , mean )
+b2 <- apply( post2$b_cafe , 2 , mean )
+plot( a1 , b1 , xlab="intercept" , ylab="slope" ,
+      pch=16 , col=rangi2 , ylim=c( min(b1)-0.05 , max(b1)+0.05 ) ,
+      xlim=c( min(a1)-0.1 , max(a1)+0.1 ) )
+points( a2 , b2 , pch=1 )
+
+# The further from the average, the bigger the difference in prediction.
 
 # 3
 
@@ -146,7 +153,8 @@ m13.m3_nc <- map2stan(
   ) ,
   data=d , warmup=500 , iter=2000 , chains=4 , cores=3 )
 
-# The original one is better and sampled faster, wtf.
+# The original one is better and sampled faster, wtf. Looks like sometimes centered beats
+# non-centered... Just like Professor McElreath said.
 
 # 4
 
@@ -200,6 +208,8 @@ compare(m13.7, m12.6)
 # HARD
 # 1
 
+library(rethinking)
+library(tidyverse)
 data("bangladesh")
 d = bangladesh
 d$district_id <- as.integer(as.factor(d$district))
@@ -252,7 +262,9 @@ m13.h2 = map2stan(
 precis(m13.h2, depth=2)
 8.3 / 140
 1.86 / 8
-# the slopes vary a lot more!
+# To correctly assess the source of variation, we need the range
+# of ages. But for these data, apparently the intercepts are the
+# most important source of variation.
 
 # 3
 
@@ -274,6 +286,7 @@ post_a = post$a[1:10]
 post_b = post$b[1:10]
 sigma_a = post$sigma_subject[1:10, 1]
 sigma_b = post$sigma_subject[1:10, 2]
+sigma = post$sigma[1:10]
 rho = post$R[1:10,1,2]
 students = list()
 for(i in seq(10)) {
@@ -286,7 +299,7 @@ for(i in seq(10)) {
 
 age = d$age[1:9]
 height = seq(130, 180, length.out=9)
-plot(height ~ ages, col='white')
+plot(height ~ age, col='white')
 for(i in seq(10)) {
-  abline(a=students[[i]][1], b=students[[i]][2])
+  lines(age, rnorm(9, (students[[i]][1] + students[[i]][2] * age), sigma[i]))
 }
