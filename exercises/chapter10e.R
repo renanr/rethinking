@@ -11,6 +11,7 @@ p
 
 # 3
 plot(logistic(seq(from=-17, to=17, by=1.7)) ~ seq(21))
+exp(1.7)
 
 # 4
 # Because frequencies might be expressed in different periods.
@@ -19,10 +20,13 @@ plot(logistic(seq(from=-17, to=17, by=1.7)) ~ seq(21))
 # MEDIUM
 # 1
 # The likelihood changes because the aggregated form loses information about order,
-# so that is not accounted in the likelihood.
+# so that is not accounted in the likelihood (but an average over all possible orders instead).
 
 # 2
 plot(exp(seq(from=-17, to=17, by=1.7)) ~ seq(21))
+# lambda = e ^ (a + b * x)
+# lambda_ratio = e ^ (a + b * (x + 1)) / e ^ (a + b * x) = exp(b)
+exp(1.7)
 
 # 3
 # Because it maps the real numbers onto values between 0 and 1, matching them to probabilites.
@@ -31,12 +35,13 @@ plot(exp(seq(from=-17, to=17, by=1.7)) ~ seq(21))
 # Because it maps the real numbers onto unbounded positive values, matching them to rates.
 
 # 5
-# It would imply that rates are bounded between 0 and 1. Maybe portion of time when an alarm
-# went off (not as a count, but as period_alarm / total_period)?
+# It would imply that rates are bounded between 0 and 1. Could make sense if the exponential
+# growth is believed to disappear at values larger than a threshold.
 
 # 6
-# Constraints: count outcome that comes from N trials with CONSTANT expected value n * p.
-# The constraints are equal because Poisson is just a special case of the binomial.
+# Constraints: count outcome (discrete binary outcome) that comes from N trials with CONSTANT
+# expected value n * p. The constraints are equal because Poisson is just a special case of
+# the binomial.
 
 # HARD
 # 1
@@ -96,7 +101,7 @@ ggplot() +
 # thus it is not possible to indiscriminate between high values of the logit function.
 
 # 2
-m10.1 <- map(
+m10.1 <- map2stan(
   alist(
     pulled_left ~ dbinom( 1 , p ) ,
     logit(p) <- a ,
@@ -104,7 +109,7 @@ m10.1 <- map(
   ) ,
   data=d )
 
-m10.2 <- map(
+m10.2 <- map2stan(
              alist(
                pulled_left ~ dbinom( 1 , p ) ,
                logit(p) <- a + bp*prosoc_left ,
@@ -113,7 +118,7 @@ m10.2 <- map(
              ) ,
              data=d )
 
-m10.3 <- map(
+m10.3 <- map2stan(
   alist(
     pulled_left ~ dbinom( 1 , p ) ,
     logit(p) <- a + (bp + bpC*condition)*prosoc_left ,
@@ -274,4 +279,6 @@ ggplot() +
                     ymax=apply(links3, 2, HPDI, .89)[2, ])) +
   geom_point(aes(x=ds$PCTCOVER, y=ds$SALAMAN, colour='REAL DEAL'))
 
-# THIS IS SHIT
+# Forest age is just a poorer indicator of coverage, and the variable that directly
+# influences salamander counts is coverage. That's why forest age doesn't help when we
+# already have coverage.
