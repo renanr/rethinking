@@ -5,7 +5,7 @@
 # An ordered categorical variable has an implicit increasing relation
 # among values, such as the degree to which someone likes a product (if
 # it's defined from 1 to 4, 4 means that the person likes it more than
-# 3, which in turn means she likes it more than 2, etc.
+# 3, which in turn means she likes it more than 2, etc).
 # An unordered categorical only has distinct values, but they have no
 # increasing or decreasing relations, such as colour of a car (1 for green,
 # 2 for red, etc).
@@ -125,78 +125,12 @@ ggplot(d) +
   geom_point(aes(x=femininity, y=proj2, colour='Retrodiction')) +
   geom_errorbar(aes(x=femininity, ymin=hpdimin2, ymax=hpdimax2))
 
-# It diminushed in strength because now we're explicitly allowing hidden variables
-# to be responsible for variation, and the model thinks this is more probably the
-# case.
+# The new model allows more variation for the rate (lambda) for every pair
+# of parameters, since it's sampled from a distribution, and therefore there
+# are broader values of parameters that are plausible.
 
-# 3
-
-d$damage_norm = with(d, (damage_norm - mean(damage_norm)) / sd(damage_norm) )
-d$min_pressure = with(d, (min_pressure - mean(min_pressure)) / sd(min_pressure) )
-
-m3a = map2stan(
-  alist(
-    deaths ~ dgampois(mu, scale=theta),
-    log(mu) <- a + (b + bD * femininity) * damage_norm,
-    a ~ dnorm(3, 10),
-    c(b, bD) ~ dnorm(0, 5),
-    theta ~ dexp(1)
-  ), data=d, iter=1500, warmup=300, chains=2, constraints=list(theta="lower=0"),
-  start=list(a=3, b=0, bD=0)
-)
-
-m3b = map2stan(
-  alist(
-    deaths ~ dgampois(mu, scale=theta),
-    log(mu) <- a + (b + bP * femininity) * min_pressure,
-    a ~ dnorm(3, 10),
-    c(b, bP) ~ dnorm(0, 5),
-    theta ~ dexp(1)
-  ), data=d, iter=1500, warmup=300, chains=2, constraints=list(theta="lower=0"),
-  start=list(a=3, b=0, bP=0)
-)
-
-m3ab = map2stan(
-  alist(
-    deaths ~ dgampois(mu, scale=theta),
-    log(mu) <- a + (b + bD * femininity) * damage_norm + (b2 + bP * femininity) * min_pressure,
-    a ~ dnorm(3, 10),
-    c(b, bD, b2, bP) ~ dnorm(0, 5),
-    theta ~ dexp(1)
-  ), data=d, iter=1500, warmup=300, chains=2, constraints=list(theta="lower=0"),
-  start=list(a=3, b=0, bD=0, bP=0)
-)
-
-compare(m2, m3a, m3b, m3ab)
-precis(m3a)
-
-# I only get poor results for these interaction models. Why?
-# All the Akaike weight goes to model 2...
-
-# 4
-# This depends on the previous one
-
-# 5
-data("Trolley")
-d = Trolley
-
-m5 <- rethinking::map(
-  alist(
-    response ~ dordlogit( phi , c(a1,a2,a3,a4,a5,a6) ) ,
-    phi <- bA*action + bI*intention + (bC + bMC * male) * contact,
-    c(bA,bI,bC,bMC) ~ dnorm(0,10),
-    c(a1,a2,a3,a4,a5,a6) ~ dnorm(0,10)
-  ) ,
-  data=d ,
-  start=list(a1=-1.9,a2=-1.2,a3=-0.7,a4=0.2,a5=0.9,a6=1.8) )
-
-precis(m5)
-
-post <- extract.samples( m5 )
-
-# In these data, women are more bothered by contact. bC is negative, implying
-# lower probabilities for high permissivities, but the interaction with male is
-# positive, allowing somewhat higher probabilities.
+# 3 to 5: I'm sorry but I couldn't work them out just yet.
+# Will get them done next time I go through the book!
 
 # 6
 
