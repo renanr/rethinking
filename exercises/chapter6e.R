@@ -38,8 +38,8 @@ entropy.e4 = -sum(p.e4 * log(p.e4))
 # 6M2
 # Model selection is the exercise of using different criteria (such as the information ones) to select one model to be used
 # among a group of candidates. Model averaging, on the other hand, is using a set of weights to sample proportionally from
-# the group of models. Under model selection, the specificities of each model are lost. Under model averaging, nothing is
-# lost (...?)
+# the group of models. Under model selection, the specificities of each model are lost. Under model averaging, less is
+# lost.
 
 # 6M3
 # Because deviance scales with sample size. Also, some points may have particular effect on deviance.
@@ -188,7 +188,7 @@ ggplot(links) +
        title = 'Height as a function of age') +
   facet_wrap(~ name, scales='free_y', ncol=3)
 
-# 1 and 2 ha ve huge intervals of systematic under or overprediction (one kind per interval, I mean).
+# 1 and 2 have huge intervals of systematic under or overprediction (one kind per interval, I mean).
 # 3 fluctuates more wildly where there are less points. 4, 5 and 6 have increasing confidence intervals
 # out of the boundaries of the training data (and increasingly wider). The ensemble gets a more stable
 # behaviour and also the shaded areas get reduced under the curve, they lean upwards.
