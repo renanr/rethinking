@@ -317,7 +317,7 @@ compare(m5.8s, m5.8s2)
 
 num_weeks <- 1e3
 positions <- rep(0,num_weeks)
-populations = seq(10, 1) # could be `number_islands` instead of 10, but yeah fuck it
+populations = seq(10, 1) # could be `number_islands` instead of 10
 current <- 10
 for ( i in 1:num_weeks ) {
   positions[i] <- current
@@ -333,7 +333,7 @@ for ( i in 1:num_weeks ) {
 
 num_tosses <- 1e4
 results <- rep(0,num_tosses)
-densities = c(3, 7) # could be `number_islands` instead of 10, but yeah fuck it
+densities = c(3, 7) # could be `number_islands` instead of 10
 current <- 2
 for ( i in 1:num_tosses ) {
   results[i] <- current
