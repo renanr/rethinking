@@ -8,7 +8,7 @@
 # The limitation is being tied to the choice of conjugate pairs. It also doesn't scale efficiently to really complex models.
 
 # 8E3
-# HMC requires continuous parameters.
+# HMC requires continuous parameters ("smooth surface to glide on").
 
 # 8E4
 # The effective number of samples, n_eff, as calculated by Stan, accounts for autocorrelation between samples, and so n_eff <= #samples.
@@ -39,7 +39,7 @@ m8.1stan <- map2stan(
     bA ~ dnorm(0,10),
     bAR ~ dnorm(0,10),
     sigma ~ dcauchy(0,2)
-  ), data=dd.trim )
+  ), data=dd.trim, iter=1500, warmup=300, chains=2, cores=2 )
 
 m8.1stan.M1.1 <- map2stan(
   alist(
@@ -49,8 +49,8 @@ m8.1stan.M1.1 <- map2stan(
     bR ~ dnorm(0,10),
     bA ~ dnorm(0,10),
     bAR ~ dnorm(0,10),
-    sigma ~ dunif(0,2)
-  ), data=dd.trim )
+    sigma ~ dunif(0,10)
+  ), data=dd.trim, iter=1500, warmup=300, chains=2, cores=2 )
 
 m8.1stan.M1.2 <- map2stan(
   alist(
@@ -61,7 +61,7 @@ m8.1stan.M1.2 <- map2stan(
     bA ~ dnorm(0,10),
     bAR ~ dnorm(0,10),
     sigma ~ dexp(1)
-  ), data=dd.trim )
+  ), data=dd.trim, iter=1500, warmup=300, chains=2, cores=2 )
 
 post1 = extract.samples(m8.1stan)
 post2 = extract.samples(m8.1stan.M1.1)
@@ -79,9 +79,7 @@ ggplot() +
   geom_density(aes(post2[[5]], colour='unif')) +
   geom_density(aes(post3[[5]], colour='exp'))
 
-# They do! Especially in other parameters (!)
-# For sigma, `exp` is the most uncertain, producing thicker tails, and `unif` produces the narrowest
-# posterior among the three of them (except at the peak, where it is `cauchy`).
+# Data is enough to overwhelm the priors.
 
 # 8M2
 m8.2cauchy1 <- map2stan(
@@ -92,8 +90,8 @@ m8.2cauchy1 <- map2stan(
     bR ~ dnorm(0,10),
     bA ~ dnorm(0,10),
     bAR ~ dnorm(0,10),
-    sigma ~ dcauchy(0,200)
-  ), data=dd.trim )
+    sigma ~ dcauchy(0,.2)
+  ), data=dd.trim, iter=1500, warmup=300, chains=2, cores=2 )
 
 m8.2cauchy2 <- map2stan(
   alist(
@@ -103,8 +101,8 @@ m8.2cauchy2 <- map2stan(
     bR ~ dnorm(0,10),
     bA ~ dnorm(0,10),
     bAR ~ dnorm(0,10),
-    sigma ~ dcauchy(0,20)
-  ), data=dd.trim )
+    sigma ~ dcauchy(0,.02)
+  ), data=dd.trim, iter=1500, warmup=300, chains=2, cores=2 )
 
 m8.2cauchy3 <- map2stan(
   alist(
@@ -114,17 +112,17 @@ m8.2cauchy3 <- map2stan(
     bR ~ dnorm(0,10),
     bA ~ dnorm(0,10),
     bAR ~ dnorm(0,10),
-    sigma ~ dcauchy(0,.02)
-  ), data=dd.trim )
+    sigma ~ dcauchy(0,.002)
+  ), data=dd.trim, iter=1500, warmup=300, chains=2, cores=2 )
 
 post211 = extract.samples(m8.2cauchy1)
 post212 = extract.samples(m8.2cauchy2)
 post213 = extract.samples(m8.2cauchy3)
 
 ggplot() +
-  geom_density(aes(post211[[5]], colour='200')) +
-  geom_density(aes(post212[[5]], colour='20')) +
-  geom_density(aes(post213[[5]], colour='.02'))
+  geom_density(aes(post211$sigma, colour='2')) +
+  geom_density(aes(post212$sigma, colour='.02')) +
+  geom_density(aes(post213$sigma, colour='.002'))
 
 m8.2exp1 <- map2stan(
   alist(
@@ -135,7 +133,7 @@ m8.2exp1 <- map2stan(
     bA ~ dnorm(0,10),
     bAR ~ dnorm(0,10),
     sigma ~ dexp(1)
-  ), data=dd.trim )
+  ), data=dd.trim, iter=1500, warmup=300, chains=2, cores=2 )
 
 m8.2exp2 <- map2stan(
   alist(
@@ -145,8 +143,8 @@ m8.2exp2 <- map2stan(
     bR ~ dnorm(0,10),
     bA ~ dnorm(0,10),
     bAR ~ dnorm(0,10),
-    sigma ~ dexp(.25)
-  ), data=dd.trim )
+    sigma ~ dexp(10)
+  ), data=dd.trim, iter=1500, warmup=300, chains=2, cores=2 )
 
 m8.2exp3 <- map2stan(
   alist(
@@ -156,8 +154,8 @@ m8.2exp3 <- map2stan(
     bR ~ dnorm(0,10),
     bA ~ dnorm(0,10),
     bAR ~ dnorm(0,10),
-    sigma ~ dexp(.0625)
-  ), data=dd.trim )
+    sigma ~ dexp(100)
+  ), data=dd.trim, iter=1500, warmup=300, chains=2, cores=2 )
 
 post221 = extract.samples(m8.2exp1)
 post222 = extract.samples(m8.2exp2)
@@ -165,10 +163,14 @@ post223 = extract.samples(m8.2exp3)
 
 ggplot() +
   geom_density(aes(post221[[5]], colour='1')) +
-  geom_density(aes(post222[[5]], colour='.25')) +
-  geom_density(aes(post223[[5]], colour='.0625'))
+  geom_density(aes(post222[[5]], colour='10')) +
+  geom_density(aes(post223[[5]], colour='100'))
 
-# 8M3: CHANGE THE MODEL, THIS IS RANDOM SHIT
+# Exponential has INVERSE scale! So I increased it instead of decreasing to make it stronger.
+# The result is to draw the parameter closer to zero (more strongly regularizing).
+# But Cauchy didn't do much, because its tail is thicker.
+
+# 8M3
 y <- rnorm( 100 , mean=0 , sd=1 )
 
 m8e3.1 <- map2stan(
@@ -264,7 +266,6 @@ m5.3 <- map2stan(
   data = dtrim )
 
 compare(m5.1, m5.2, m5.3)
-# Marriage.s is a shitty predictor. It's just fucking noise, drop that shit already.
 
 # 8H3
 N <- 100
